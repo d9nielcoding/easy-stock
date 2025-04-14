@@ -30,8 +30,8 @@ interface RevenueChartProps {
 
 const StyledChartContainer = styled(Box)(({ theme }) => ({
   width: "100%",
-  height: 400,
-  padding: theme.spacing(2),
+  height: 360,
+  padding: theme.spacing(1),
   position: "relative",
   "& .axis-label": {
     position: "absolute",
@@ -58,10 +58,6 @@ const StyledChartContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-// const timeRangeOptions = [
-//   { value: "1y", label: "近1年" },
-//   { value: "5y", label: "近5年" },
-// ];
 const timeRangeOptions = TimeRange.values().map((timeRange) => ({
   value: timeRange,
   label: `近${timeRange}年`,
@@ -159,11 +155,11 @@ export const RevenueChart = ({
         }}
       >
         <Typography
-          variant="h6"
+          variant="subtitle1"
           sx={{
-            backgroundColor: "#1976d2",
-            color: "white",
-            padding: "8px 16px",
+            backgroundColor: "primary.main",
+            color: "primary.contrastText",
+            padding: "6px 12px",
             borderRadius: 1,
           }}
         >
@@ -190,8 +186,8 @@ export const RevenueChart = ({
         <Typography className="axis-label growth-label">%</Typography>
         <ChartContainer
           width={chartWidth}
-          height={350}
-          margin={{ left: 80, right: 80, top: 40, bottom: 50 }}
+          height={310}
+          margin={{ left: 80, right: 80, top: 30, bottom: 20 }}
           series={[
             {
               type: "bar",

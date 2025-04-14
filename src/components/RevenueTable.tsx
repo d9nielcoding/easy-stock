@@ -38,12 +38,12 @@ export const RevenueTable = ({ data, timeRange }: RevenueTableProps) => {
   return (
     <div>
       <Typography
-        variant="h6"
+        variant="subtitle1"
         sx={{
-          mb: 2,
-          backgroundColor: "#1976d2",
-          color: "white",
-          padding: "8px 16px",
+          mb: 1.5,
+          backgroundColor: "primary.main",
+          color: "primary.contrastText",
+          padding: "6px 12px",
           borderRadius: 1,
           display: "inline-block",
         }}
