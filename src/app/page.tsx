@@ -5,9 +5,11 @@ import { RevenueChart } from "@/components/RevenueChart";
 import { RevenueTable } from "@/components/RevenueTable";
 import { StockInfo } from "@/components/StockInfo";
 import TimeRange from "@/config/timerange";
-import { useRevenueData } from "@/hooks/useRevenueData";
-import { useStockInfo } from "@/hooks/useStockInfo";
-import { useStockList } from "@/hooks/useStockList";
+import {
+  useGetRevenueDataQuery,
+  useGetStockInfoQuery,
+  useGetStockListQuery,
+} from "@/store/store";
 import {
   Alert,
   Box,
@@ -16,30 +18,27 @@ import {
   Paper,
   SelectChangeEvent,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Home() {
   const [timeRange, setTimeRange] = useState<TimeRange.Range>(
     TimeRange.Range.FIVE_YEAR
   );
   const [stockId, setStockId] = useState<string>("2867");
-  const { data, isLoading, error } = useRevenueData(stockId);
-  const {
-    data: stockInfo,
-    isLoading: stockInfoLoading,
-    error: stockInfoError,
-  } = useStockInfo(stockId);
+
   const {
     data: stockList,
     isLoading: stockListLoading,
     error: stockListError,
-  } = useStockList();
+  } = useGetStockListQuery();
 
-  useEffect(() => {
-    if (stockList) {
-      console.log("Stock List Response:", stockList);
-    }
-  }, [stockList]);
+  const {
+    data: stockInfo,
+    isLoading: stockInfoLoading,
+    error: stockInfoError,
+  } = useGetStockInfoQuery(stockId);
+
+  const { data, isLoading, error } = useGetRevenueDataQuery(stockId);
 
   const handleTimeRangeChange = (event: SelectChangeEvent) => {
     setTimeRange(event.target.value as unknown as TimeRange.Range);
@@ -49,25 +48,37 @@ export default function Home() {
     setStockId(newStockId);
   };
 
-  if (error || stockInfoError || stockListError) {
+  if (error || stockInfoError) {
+    const errorMessage = error
+      ? "error" in error
+        ? error.error
+        : "data" in error
+        ? JSON.stringify(error.data)
+        : "未知錯誤"
+      : stockInfoError
+      ? "error" in stockInfoError
+        ? stockInfoError.error
+        : "data" in stockInfoError
+        ? JSON.stringify(stockInfoError.data)
+        : "未知錯誤"
+      : "發生錯誤";
+
     return (
       <>
-        <Header onSearch={handleSearch} stockList={[]} />
+        <Header onSearch={handleSearch} stockList={stockList || []} />
         <Container maxWidth="lg">
           <Box sx={{ py: 4 }}>
-            <Alert severity="error">
-              {error || stockInfoError || stockListError}
-            </Alert>
+            <Alert severity="error">{errorMessage}</Alert>
           </Box>
         </Container>
       </>
     );
   }
 
-  if (isLoading || stockInfoLoading || stockListLoading) {
+  if (isLoading || stockInfoLoading) {
     return (
       <>
-        <Header onSearch={handleSearch} stockList={[]} />
+        <Header onSearch={handleSearch} stockList={stockList || []} />
         <Container maxWidth="lg">
           <Box
             sx={{
@@ -86,7 +97,7 @@ export default function Home() {
 
   return (
     <>
-      <Header onSearch={handleSearch} stockList={stockList} />
+      <Header onSearch={handleSearch} stockList={stockList || []} />
       <Container maxWidth="lg">
         <Box sx={{ py: 4 }}>
           <StockInfo
@@ -95,13 +106,13 @@ export default function Home() {
           />
           <Paper sx={{ p: 3, mb: 3 }}>
             <RevenueChart
-              data={data}
+              data={data || []}
               timeRange={timeRange}
               onTimeRangeChange={handleTimeRangeChange}
             />
           </Paper>
           <Paper sx={{ p: 3 }}>
-            <RevenueTable data={data} timeRange={timeRange} />
+            <RevenueTable data={data || []} timeRange={timeRange} />
           </Paper>
         </Box>
       </Container>

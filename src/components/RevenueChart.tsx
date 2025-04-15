@@ -187,7 +187,7 @@ export const RevenueChart = ({
         <ChartContainer
           width={chartWidth}
           height={310}
-          margin={{ left: 80, right: 80, top: 30, bottom: 20 }}
+          margin={{ left: 80, right: 80, top: 40, bottom: 20 }}
           series={[
             {
               type: "bar",
@@ -273,7 +273,17 @@ export const RevenueChart = ({
             disableTicks
             disableLine
           />
-          <ChartsLegend position={{ vertical: "top", horizontal: "middle" }} />
+          <ChartsLegend
+            position={{
+              vertical: "top",
+              horizontal: "middle",
+            }}
+            slotProps={{
+              legend: {
+                padding: 0,
+              },
+            }}
+          />
         </ChartContainer>
       </StyledChartContainer>
     </Box>
