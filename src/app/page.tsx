@@ -18,7 +18,7 @@ import {
   Paper,
   SelectChangeEvent,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [timeRange, setTimeRange] = useState<TimeRange.Range>(
@@ -39,6 +39,14 @@ export default function Home() {
   } = useGetStockInfoQuery(stockId);
 
   const { data, isLoading, error } = useGetRevenueDataQuery(stockId);
+
+  useEffect(() => {
+    if (stockInfo) {
+      document.title = `Easy Stock | ${stockInfo.stock_name} (${stockInfo.stock_id})`;
+    } else {
+      document.title = "Easy Stock | 台股財務資訊平台";
+    }
+  }, [stockInfo]);
 
   const handleTimeRangeChange = (event: SelectChangeEvent) => {
     setTimeRange(event.target.value as unknown as TimeRange.Range);
