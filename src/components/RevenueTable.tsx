@@ -9,7 +9,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 interface RevenueData {
   date: string;
@@ -29,11 +29,20 @@ const formatRevenue = (value: number) => {
 };
 
 export const RevenueTable = ({ data, timeRange }: RevenueTableProps) => {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
   // Take the last n months of data based on timeRange
   const recentData = useMemo(() => {
     const months = timeRange * 12;
     return data.slice(-months);
   }, [data, timeRange]);
+
+  useEffect(() => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollLeft =
+        tableContainerRef.current.scrollWidth;
+    }
+  }, [recentData]);
 
   return (
     <div>
@@ -51,6 +60,7 @@ export const RevenueTable = ({ data, timeRange }: RevenueTableProps) => {
         詳細數據
       </Typography>
       <TableContainer
+        ref={tableContainerRef}
         component={Paper}
         sx={{
           maxWidth: "fit-content",
@@ -169,7 +179,7 @@ export const RevenueTable = ({ data, timeRange }: RevenueTableProps) => {
           color: "text.secondary",
         }}
       >
-        單位：千元
+        圖表單位：千元，數據來自公開資訊觀測站
       </Typography>
     </div>
   );

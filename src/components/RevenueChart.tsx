@@ -203,6 +203,7 @@ export const RevenueChart = ({
               yAxisKey: "growth",
               color: "#cb4b4b",
               valueFormatter: (value: number) => `${value.toFixed(2)}%`,
+              curve: "linear",
             },
           ]}
           xAxis={[
@@ -239,18 +240,24 @@ export const RevenueChart = ({
           ]}
         >
           <BarPlot />
-          <LinePlot />
+          <LinePlot curve="linear" />
           <ChartsTooltip
-            trigger="item"
+            trigger="axis"
+            slotProps={{
+              popper: {
+                style: {
+                  minWidth: "180px",
+                },
+              },
+            }}
             formatter={(value: number | string | Date, name: string) => {
               if (name === "每月營收") {
                 const thousands = Math.round((value as number) / 1000);
-                return [
-                  `${new Intl.NumberFormat("zh-TW").format(thousands)} 千元`,
-                  name,
-                ];
+                return `${new Intl.NumberFormat("zh-TW").format(
+                  thousands
+                )} 千元`;
               }
-              return [`${(value as number).toFixed(2)}%`, name];
+              return `${(value as number).toFixed(2)}%`;
             }}
           />
           <ChartsXAxis position="bottom" axisId="timestamp" disableTicks />
