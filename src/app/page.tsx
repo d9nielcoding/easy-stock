@@ -7,6 +7,7 @@ import { StockInfo } from "@/components/StockInfo";
 import TimeRange from "@/config/timerange";
 import { useRevenueData } from "@/hooks/useRevenueData";
 import { useStockInfo } from "@/hooks/useStockInfo";
+import { useStockList } from "@/hooks/useStockList";
 import {
   Alert,
   Box,
@@ -15,7 +16,7 @@ import {
   Paper,
   SelectChangeEvent,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [timeRange, setTimeRange] = useState<TimeRange.Range>(
@@ -28,6 +29,17 @@ export default function Home() {
     isLoading: stockInfoLoading,
     error: stockInfoError,
   } = useStockInfo(stockId);
+  const {
+    data: stockList,
+    isLoading: stockListLoading,
+    error: stockListError,
+  } = useStockList();
+
+  useEffect(() => {
+    if (stockList) {
+      console.log("Stock List Response:", stockList);
+    }
+  }, [stockList]);
 
   const handleTimeRangeChange = (event: SelectChangeEvent) => {
     setTimeRange(event.target.value as unknown as TimeRange.Range);
@@ -37,23 +49,25 @@ export default function Home() {
     setStockId(newStockId);
   };
 
-  if (error || stockInfoError) {
+  if (error || stockInfoError || stockListError) {
     return (
       <>
-        <Header onSearch={handleSearch} />
+        <Header onSearch={handleSearch} stockList={[]} />
         <Container maxWidth="lg">
           <Box sx={{ py: 4 }}>
-            <Alert severity="error">{error || stockInfoError}</Alert>
+            <Alert severity="error">
+              {error || stockInfoError || stockListError}
+            </Alert>
           </Box>
         </Container>
       </>
     );
   }
 
-  if (isLoading || stockInfoLoading) {
+  if (isLoading || stockInfoLoading || stockListLoading) {
     return (
       <>
-        <Header onSearch={handleSearch} />
+        <Header onSearch={handleSearch} stockList={[]} />
         <Container maxWidth="lg">
           <Box
             sx={{
@@ -72,7 +86,7 @@ export default function Home() {
 
   return (
     <>
-      <Header onSearch={handleSearch} />
+      <Header onSearch={handleSearch} stockList={stockList} />
       <Container maxWidth="lg">
         <Box sx={{ py: 4 }}>
           <StockInfo

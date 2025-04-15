@@ -1,6 +1,8 @@
+import { StockInfo } from "@/types/stock";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   AppBar,
+  Autocomplete,
   Box,
   Button,
   Container,
@@ -10,11 +12,11 @@ import {
   Tabs,
   Toolbar,
 } from "@mui/material";
-import Image from "next/image";
 import { useState } from "react";
 
 interface HeaderProps {
-  onSearch: (stockId: string) => void;
+  onSearch: (value: string) => void;
+  stockList: StockInfo[];
 }
 
 const Search = styled("div")(({ theme }) => ({
@@ -49,29 +51,6 @@ const Search = styled("div")(({ theme }) => ({
   },
 }));
 
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: theme.palette.primary.main,
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: theme.palette.text.primary,
-  width: "100%",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    paddingRight: theme.spacing(14),
-    transition: theme.transitions.create("width"),
-    width: "100%",
-  },
-}));
-
 const SearchButton = styled(Button)(({ theme }) => ({
   position: "absolute",
   right: -2,
@@ -93,14 +72,31 @@ const SearchButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export const Header = ({ onSearch }: HeaderProps) => {
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  width: "100%",
+  "& .MuiInputBase-input": {
+    padding: theme.spacing(1, 14, 1, 2),
+    width: "100%",
+    "&::placeholder": {
+      color: theme.palette.text.secondary,
+      opacity: 1,
+    },
+  },
+}));
+
+export const Header = ({ onSearch, stockList }: HeaderProps) => {
   const [searchValue, setSearchValue] = useState("");
   const [tabValue, setTabValue] = useState(0);
 
   const handleSearch = () => {
-    if (searchValue.trim()) {
-      onSearch(searchValue.trim());
-      setSearchValue(""); // Reset input after search
+    // 檢查是否有完全符合的股票
+    const hasExactMatch = stockList.some(
+      (stock) => stock.stock_id === searchValue
+    );
+
+    if (searchValue && hasExactMatch) {
+      onSearch(searchValue);
     }
   };
 
@@ -108,10 +104,6 @@ export const Header = ({ onSearch }: HeaderProps) => {
     if (event.key === "Enter") {
       handleSearch();
     }
-  };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
   };
 
   return (
@@ -128,12 +120,9 @@ export const Header = ({ onSearch }: HeaderProps) => {
       >
         <Container maxWidth="lg">
           <Toolbar
-            disableGutters
             sx={{
               display: "grid",
               gridTemplateColumns: "minmax(auto, 1fr) auto minmax(auto, 1fr)",
-              alignItems: "center",
-              minHeight: 64,
               gap: 2,
             }}
           >
@@ -141,18 +130,13 @@ export const Header = ({ onSearch }: HeaderProps) => {
               sx={{
                 display: "flex",
                 alignItems: "center",
+                gap: 2,
               }}
             >
-              <Image
-                src="/stockcat.png"
-                alt="Stock Cat Logo"
-                width={40}
-                height={40}
-                style={{ marginRight: "16px" }}
-              />
+              <img src="/stockcat.png" alt="Logo" style={{ height: "32px" }} />
               <Tabs
                 value={tabValue}
-                onChange={handleTabChange}
+                onChange={(_, value) => setTabValue(value)}
                 sx={{
                   minHeight: 64,
                   "& .MuiTab-root": {
@@ -196,29 +180,77 @@ export const Header = ({ onSearch }: HeaderProps) => {
               </Tabs>
             </Box>
             <Search>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="輸入台股代號/美股代號/關鍵字"
-                inputProps={{ "aria-label": "search" }}
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+              <Autocomplete
+                freeSolo
+                options={stockList}
+                getOptionLabel={(option) =>
+                  typeof option === "string"
+                    ? option
+                    : `${option.stock_id} ${option.stock_name}`
+                }
+                value={undefined}
+                inputValue={searchValue}
+                onInputChange={(_, newValue) => setSearchValue(newValue)}
+                onChange={(_, newValue) => {
+                  if (newValue && typeof newValue !== "string") {
+                    setSearchValue(newValue.stock_id);
+                    onSearch(newValue.stock_id);
+                  }
+                }}
+                renderInput={(params) => (
+                  <StyledInputBase
+                    {...params.InputProps}
+                    ref={params.InputProps.ref}
+                    placeholder="搜尋股票代號..."
+                    onKeyPress={handleKeyPress}
+                    inputProps={{
+                      ...params.inputProps,
+                      type: "search",
+                    }}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    {option.stock_id} {option.stock_name}
+                  </li>
+                )}
+                filterOptions={(options, { inputValue }) => {
+                  const searchText = inputValue.toLowerCase();
+                  if (!searchText) return [];
+                  return options
+                    .filter((option) =>
+                      option.stock_id.toLowerCase().startsWith(searchText)
+                    )
+                    .slice(0, 10);
+                }}
+                disableClearable
+                popupIcon={null}
+                componentsProps={{
+                  paper: {
+                    sx: {
+                      marginTop: 1,
+                    },
+                  },
+                }}
+                sx={{
+                  width: "100%",
+                  "& .MuiAutocomplete-endAdornment": {
+                    display: "none",
+                  },
+                  "& .MuiInputBase-root": {
+                    padding: 0,
+                  },
+                }}
               />
-              <SearchButton
-                variant="contained"
-                size="small"
-                onClick={handleSearch}
-              >
-                搜尋
+              <SearchButton onClick={handleSearch}>
+                <SearchIcon />
               </SearchButton>
             </Search>
-            <Box /> {/* Empty box for the third column */}
+            <Box /> {/* Spacer */}
           </Toolbar>
         </Container>
       </AppBar>
-      <Toolbar /> {/* 這個是為了補償 fixed AppBar 的空間 */}
+      <Toolbar /> {/* 補償 fixed AppBar 的空間 */}
     </>
   );
 };
