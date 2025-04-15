@@ -14,8 +14,7 @@ export const metadata: Metadata = {
     locale: "zh_TW",
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: "/stockcat.png",
   },
   manifest: "/site.webmanifest",
 };
